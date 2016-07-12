@@ -25,6 +25,7 @@
 #define __PPM_EDIT_CPP_HAN__
 
 //C++ Includes
+#include <fstream>
 #include <utility>
 
 //C Includes
@@ -94,9 +95,18 @@ namespace CNDS {
 				_width(0), _height(0) { _set(); };
 			PPM(cnpe_uint a, cnpe_uint b):
 				_width(a), _height(b) { _set(); };
+			PPM(const char*);
 
 			//Destructor
 			~PPM();
+
+			//Open Functions
+			void open    (const char*);
+			/*
+			void open_ppm(const char*);
+			void open_pgm(const char*);
+			void open_pbm(const char*);
+			*/
 			
 			//Get Functions
 			cnpe_uint     width ();
@@ -108,6 +118,12 @@ namespace CNDS {
 		private:
 			//Special Stuff
 			void _set();
+			void _open_ppm_ascii (const char*);
+			void _open_pgm_ascii (const char*);
+			void _open_pbm_ascii (const char*);
+			void _open_ppm_binary(FILE*);
+			void _open_pgm_binary(FILE*);
+			void _open_pbm_binary(FILE*);
 
 			//Data
 			cnpe_uint _width, _height;

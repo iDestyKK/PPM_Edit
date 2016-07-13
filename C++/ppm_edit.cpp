@@ -123,14 +123,41 @@ void CNDS::PPM::_open_ppm_ascii(const char* fname) {
 void CNDS::PPM::_open_pgm_ascii(const char* fname) {
 	//P2
 	ifstream fp(fname);
-	
+	if (fp.fail()) return;
+	std::string garbage;
+	cnpe_uint _range;
+	fp >> garbage >> _width >> _height >> _range;
+	_set();
+	for (cnpe_uint i = 0; i < _width * _height; i++) {
+		IMG::PPM_RGB& _REF = at(i % _width, i / _width);
+		cnpe_uint c;
+		fp >> c;
+		c *= (0xFF / _range);
+		_REF.R = (cnpe_byte)c;
+		_REF.G = (cnpe_byte)c;
+		_REF.B = (cnpe_byte)c;
+	}
+
 	fp.close();
 }
 
 void CNDS::PPM::_open_pbm_ascii(const char* fname) {
 	//P1
 	ifstream fp(fname);
-	
+	if (fp.fail()) return;
+	std::string garbage;
+	fp >> garbage >> _width >> _height;
+	_set();
+	for (cnpe_uint i = 0; i < _width * _height; i++) {
+		IMG::PPM_RGB& _REF = at(i % _width, i / _width);
+		cnpe_uint c;
+		fp >> c;
+		c = (c == 1) ? 0x00 : 0xFF;
+		_REF.R = (cnpe_byte)c;
+		_REF.G = (cnpe_byte)c;
+		_REF.B = (cnpe_byte)c;
+	}
+
 	fp.close();
 }
 
@@ -154,12 +181,50 @@ void CNDS::PPM::_open_ppm_binary(FILE* fp) {
 
 void CNDS::PPM::_open_pgm_binary(FILE* fp) {
 	//P5
-	
+	//Get size of the file
+	fseek(fp, (size_t)0, SEEK_END);
+	cnpe_uint __sz = ftell(fp);
+	rewind(fp);
+
+	cnpe_uint _c = 0;
+	while (_c != 3)
+		if (fgetc(fp) == 0x0A) _c++;
+	__sz -= ftell(fp);
+
+	//Now to read bytes...
+	cnpe_byte* _tmp = (cnpe_byte *) malloc(__sz);
+	fread(_tmp, 1, __sz, fp);
+	for (_c = 0; _c < __sz; _c++) {
+		IMG::PPM_RGB& _TMP = at(_c % _width, _c / _width);
+		_TMP.R = _tmp[_c];
+		_TMP.G = _tmp[_c];
+		_TMP.B = _tmp[_c];
+	}
+	free(_tmp);
 	fclose(fp);
 }
 
 void CNDS::PPM::_open_pbm_binary(FILE* fp) {
 	//P4
-	
+	//Get size of the file
+	fseek(fp, (size_t)0, SEEK_END);
+	cnpe_uint __sz = ftell(fp);
+	rewind(fp);
+
+	cnpe_uint _c = 0, c;
+	while (_c != 3)
+		if (fgetc(fp) == 0x0A) _c++;
+	__sz -= ftell(fp);
+
+	//Now to read bytes...
+	cnpe_byte* _tmp = (cnpe_byte *) malloc(__sz);
+	fread(_tmp, 1, __sz, fp);
+	for (_c = 0; c < __sz; _c++) {
+		IMG::PPM_RGB& _TMP = at(_c % _width, _c / _width);
+		c = (_tmp[_c] == 1) ? 0x00 : 0xFF ;
+		_TMP.R = c;
+		_TMP.G = c;
+		_TMP.B = c;
+	}
 	fclose(fp);
 }
